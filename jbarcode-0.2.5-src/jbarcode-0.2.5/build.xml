@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project name="jbarcode" default="dist" basedir=".">
+	<description>
+        	JBarcode build file.
+	</description>
+
+	<!-- set global properties for this build -->
+	<property name="src.dir" location="./src" />
+	<property name="lib.dir" location="./lib" />
+	<property name="doc.dir" location="./doc" />
+	<property name="conf.dir" location="./conf" />
+	<property name="build.dir" location="./build" />
+	<property name="dist.dir" location="./dist" />
+
+	<property name="version" value="0.2.5" />
+
+	<!-- build path -->
+	<path id="project.class.path">
+		<fileset dir="${lib.dir}">
+			<include name="**/*.jar" />
+		</fileset>
+		<pathelement path="${src.dir}" />
+	</path>
+
+	<target name="init">
+		<tstamp />
+		<mkdir dir="${build.dir}" />
+	</target>
+
+	<target name="clean" description="clean up">
+		<delete dir="${build.dir}" />
+		<delete dir="${dist.dir}" />
+	</target>
+
+	<target name="javadoc" description="Generates javadoc">
+		<javadoc destdir="${doc.dir}" author="true" version="true" use="true" packagenames="org.jbarcode.*" sourcepath="${src.dir}" windowtitle="JBarcode">
+			<fileset dir="${src.dir}">
+				<include name="*.java" />
+			</fileset>
+		</javadoc>
+	</target>
+
+	<target name="compile" depends="init" description="compile the source ">
+		<javac srcdir="${src.dir}" destdir="${build.dir}" debug="off" deprecation="off" source="1.4" target="1.4">
+			<include name="**/*.java" />
+			<classpath refid="project.class.path" />
+		</javac>
+	</target>
+
+	<target name="jar" depends="clean, compile" description="compile the source ">
+		<mkdir dir="${dist.dir}" />
+		<copy toDir="${build.dir}">
+			<fileset dir="${conf.dir}" includes="**/*" excludes="MANIFEST.MF" />
+		</copy>
+		<jar jarfile="${dist.dir}/${ant.project.name}-${version}.jar" basedir="${build.dir}" manifest="${conf.dir}/MANIFEST.MF" />
+	</target>
+
+	<target name="dist" depends="clean, javadoc, jar" description="generate the distribution">
+		<property name="pack.name" value="${ant.project.name}-${version}-src" />
+		<property name="dist.tmp" value="${dist.dir}/${ant.project.name}-${version}" />
+
+		<mkdir dir="${dist.dir}" />
+		<mkdir dir="${dist.tmp}" />
+
+		<copy todir="${dist.tmp}/lib">
+			<fileset dir="${lib.dir}">
+			</fileset>
+		</copy>
+
+		<copy todir="${dist.tmp}/conf">
+			<fileset dir="${conf.dir}">
+			</fileset>
+		</copy>
+
+		<copy todir="${dist.tmp}/doc">
+			<fileset dir="${doc.dir}">
+			</fileset>
+		</copy>
+
+		<copy todir="${dist.tmp}/src">
+			<fileset dir="${src.dir}">
+			</fileset>
+		</copy>
+
+		<copy file="build.xml" todir="${dist.tmp}" />
+		<copy file="README" todir="${dist.tmp}" />
+		<copy file="LICENSE" todir="${dist.tmp}" />
+
+		<tar tarfile="${pack.name}.tar.gz" compression="gzip" basedir="${dist.dir}">
+			<tarfileset dir="${dist.dir}">
+				<include name="${dist.dir}/**" />
+				<exclude name="${dist.dir}/*.jar" />
+			</tarfileset>
+		</tar>
+
+		<zip destfile="${pack.name}.zip" basedir="${dist.dir}">
+			<zipfileset dir="${dist.dir}">
+				<include name="${dist.dir}/**" />
+				<exclude name="${dist.dir}/*.jar" />
+			</zipfileset>
+		</zip>
+
+		<move file="${pack.name}.tar.gz" todir="${dist.dir}/" />
+		<move file="${pack.name}.zip" todir="${dist.dir}/" />
+
+		<delete dir="${build.dir}" />
+		<delete dir="${dist.tmp}" />
+	</target>
+
+	<target name="upload" depends="dist" description="Upload the files to SourceForge.net releasing system">
+		<ftp verbose="yes" passive="yes" depends="yes" remotedir="/incoming" server="upload.sourceforge.net" userid="anonymous" password="">
+			<fileset dir="${dist.dir}" />
+		</ftp>
+	</target>
+</project>

@@ -1,0 +1,5 @@
+org.jbarcode
+org.jbarcode.demo
+org.jbarcode.encode
+org.jbarcode.paint
+org.jbarcode.util
